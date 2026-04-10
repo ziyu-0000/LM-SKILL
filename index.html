@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>联盟开发者运营工作流 · Skill Hub</title>
+<link rel="stylesheet" href="./output.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  
+  * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  
+  body {
+    background: linear-gradient(135deg, #0a0f1c 0%, #111827 50%, #0d1525 100%);
+    min-height: 100vh;
+    color: #e2e8f0;
+  }
+
+  .glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .glass-card {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(99,102,241,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(99,102,241,0.15);
+  }
+
+  .phase-tab {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    color: #94a3b8;
+    white-space: nowrap;
+  }
+
+  .phase-tab.active {
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.1));
+    color: #fff;
+    border: 1px solid rgba(99,102,241,0.3);
+  }
+
+  .phase-tab:hover:not(.active) {
+    background: rgba(255,255,255,0.05);
+    color: #cbd5e1;
+  }
+
+  .phase-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 3px;
+  }
+
+  .work-item {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .work-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+    transition: all 0.3s ease;
+  }
+
+  .work-item:hover::before {
+    width: 5px;
+  }
+
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  /* 阶段颜色 */
+  .phase-market::before { background: linear-gradient(to bottom, #3b82f6, #60a5fa); }
+  .phase-traffic::before { background: linear-gradient(to bottom, #10b981, #34d399); }
+  .phase-form::before { background: linear-gradient(to bottom, #f59e0b, #fbbf24); }
+  .phase-monetize::before { background: linear-gradient(to bottom, #ef4444, #f87171); }
+  .phase-exp::before { background: linear-gradient(to bottom, #8b5cf6, #a78bfa); }
+  .phase-service::before { background: linear-gradient(to bottom, #ec4899, #f472b6); }
+
+  /* 业务类型标签色 */
+  .tag-general { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.25); }
+  .tag-sdk { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
+  .tag-api { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
+  
+  /* 工作类型标签 */
+  .type-info { background: rgba(56,189,248,0.12); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.2); }
+  .type-comm { background: rgba(167,139,250,0.12); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.2); }
+  .type-plan { background: rgba(244,114,182,0.12); color: #f9a8d4; border: 1px solid rgba(244,114,182,0.2); }
+  .type-demand { background: rgba(52,211,153,0.12); color: #86efac; border: 1px solid rgba(52,211,153,0.2); }
+  .type-config { background: rgba(251,191,36,0.12); color: #fde047; border: 1px solid rgba(251,191,36,0.25); }
+  .type-data { background: rgba(236,72,153,0.12); color: #f9a8d4; border: 1px solid rgba(236,72,153,0.2); }
+  .type-decision { background: rgba(139,92,246,0.12); color: #ddd6fe; border: 1px solid rgba(139,92,246,0.2); }
+
+  /* Skill 上传区域 */
+  .skill-upload-zone {
+    border: 1.5px dashed rgba(99,102,241,0.3);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .skill-upload-zone:hover, .skill-upload-zone.dragover {
+    border-color: rgba(99,102,241,0.7);
+    background: rgba(99,102,241,0.05);
+  }
+
+  /* Modal 样式 */
+  .modal-overlay {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  /* 统计数字动画 */
+  .stat-number {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* 进度条 */
+  .progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 滚动条美化 */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+
+  /* 技能卡片徽章 */
+  .skill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(52,211,153,0.1));
+    color: #6ee7b7;
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+
+  .no-skill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(148,163,184,0.1);
+    color: #64748b;
+    border: 1px solid rgba(148,163,184,0.2);
+  }
+
+  /* 流程连接线动画 */
+  .flow-line {
+    position: relative;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flow-line::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, rgba(99,102,241,0.4), transparent);
+  }
+
+  .flow-line::after {
+    content: '▼';
+    font-size: 10px;
+    color: rgba(99,102,241,0.5);
+  }
+
+  /* 搜索框样式 */
+  .search-input:focus {
+    outline: none;
+    border-color: rgba(99,102,241,0.5);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+
+  /* 动画 */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in {
+    animation: fadeInUp 0.4s ease-out forwards;
+  }
+
+  .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+  .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+  .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+  .stagger-4 { animation-delay: 0.2s; opacity: 0; }
+  .stagger-5 { animation-delay: 0.25s; opacity: 0; }
+
+  /* 已上传 skill 文件项 */
+  .uploaded-skill-item {
+    transition: all 0.2s ease;
+  }
+
+  .uploaded-skill-item:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* 粒子背景 */
+  #particles {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(99,102,241,0.3);
+    border-radius: 50%;
+    animation: float linear infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* 面包屑导航 */
+  .breadcrumb-item + .breadcrumb-item::before {
+    content: '/';
+    margin: 0 8px;
+    color: #475569;
+  }
+
+  /* ===== 新增：下载按钮样式 ===== */
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(16,185,129,0.1);
+    color: #6ee7b7;
+    border: 1px solid rgba(16,185,129,0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .btn-download:hover {
+    background: rgba(16,185,129,0.2);
+    border-color: rgba(16,185,129,0.4);
+    color: #a7f3d0;
+  }
+
+  /* 排行榜样式 */
+  .rank-badge {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .rank-1 { background: linear-gradient(135deg,#f59e0b,#fbbf24); color:#1a1a1a; }
+  .rank-2 { background: linear-gradient(135deg,#9ca3af,#d1d5db); color:#1a1a1a; }
+  .rank-3 { background: linear-gradient(135deg,#cd7c32,#e5a04a); color:#1a1a1a; }
+  .rank-n { background: rgba(255,255,255,0.06); color:#64748b; }
+
+  .rank-bar {
+    height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  .rank-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.8s cubic-bezier(.22,1,.36,1);
+  }
+
+  .contributor-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body class="antialiased">
+
+<!-- 粒子背景 -->
+<div id="particles"></div>
+
+<!-- 主容器 -->
+<div class="relative z-10 max-w-[1600px] mx-auto px-4 py-6">
+
+  <!-- ===== 顶部 Header ===== -->
+  <header class="mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white tracking-tight">联盟开发者运营工作流</h1>
+          <p class="text-sm text-slate-400 mt-0.5">Skill Hub · 运营工作自动化平台</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <!-- 全局搜索 -->
+        <div class="relative">
+          <input type="text" id="globalSearch" placeholder="搜索工作内容..." 
+            class="search-input w-64 bg-white/[0.04] border border-white/10 rounded-lg px-4 py-2 pl-10 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50">
+          <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+
+        <!-- 全局上传按钮 -->
+        <button onclick="openGlobalUploadModal()" class="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all hover:shadow-indigo-500/30 active:scale-[0.97]">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          上传 Skill
+        </button>
+      </div>
+    </div>
+
+    <!-- 统计面板 -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div class="glass rounded-xl p-4">
+        <div class="stat-number" id="totalWorks">44</div>
+        <div class="text-xs text-slate-400 mt-1">工作项总数</div>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <div class="stat-number">6</div>
+        <div class="text-xs text-slate-400 mt-1">运营阶段</div>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <div class="stat-number" id="skillCount">0</div>
+        <div class="text-xs text-slate-400 mt-1">已建设 Skill</div>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <div class="stat-number" id="coverageRate">0%</div>
+        <div class="text-xs text-slate-400 mt-1">覆盖率</div>
+        <div class="progress-bar mt-2"><div class="progress-fill" id="coverageBar" style="width:0%"></div></div>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <div class="stat-number" id="businessTypesCount">3</div>
+        <div class="text-xs text-slate-400 mt-1">业务类型</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== 阶段 Tab 导航 ===== -->
+  <nav class="mb-6 flex items-center gap-2 overflow-x-auto pb-2" id="phaseTabs">
+    <!-- 由 JS 动态渲染 -->
+  </nav>
+
+  <!-- ===== 主内容区 ===== -->
+  <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- 左侧：工作流列表 (占 2 列) -->
+    <div class="lg:col-span-2 space-y-4">
+      
+      <!-- 当前阶段标题 & 工作子类分组 -->
+      <div id="worksContainer">
+        <!-- 由 JS 动态渲染 -->
+      </div>
+
+    </div>
+
+    <!-- 右侧：信息面板 -->
+    <aside class="space-y-4">
+      
+      <!-- ===== Skill 调用量排行榜（置顶） ===== -->
+      <div class="glass rounded-xl p-5">
+        <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          调用量 Top 榜
+        </h3>
+        <div id="callRankingList" class="space-y-2"></div>
+      </div>
+
+      <!-- ===== 贡献者排行榜（置顶） ===== -->
+      <div class="glass rounded-xl p-5">
+        <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          贡献者排行
+        </h3>
+        <div id="contributorRankingList" class="space-y-2"></div>
+      </div>
+
+      <!-- 已上传 Skills -->
+      <div class="glass rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            已上传 Skills
+          </h3>
+          <span class="text-xs text-slate-500" id="skillListCount">0 个文件</span>
+        </div>
+        <div id="uploadedSkillsList" class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+          <div class="text-center py-6 text-slate-500 text-sm">
+            <svg class="w-10 h-10 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            还没有上传的 Skill<br>点击「上传 Skill」开始
+          </div>
+        </div>
+      </div>
+
+      <!-- 筛选器 -->
+      <div class="glass rounded-xl p-5">
+        <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+          筛选器
+        </h3>
+        
+        <div class="space-y-3">
+          <!-- 仅看有 Skill -->
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" id="filterHasSkill" onchange="applyFilters()" class="w-4 h-4 rounded border-slate-600 bg-transparent text-indigo-500 focus:ring-indigo-500/30">
+            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">仅看已建设 Skill</span>
+          </label>
+          
+          <!-- 仅看无 Skill -->
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" id="filterNoSkill" onchange="applyFilters()" class="w-4 h-4 rounded border-slate-600 bg-transparent text-indigo-500 focus:ring-indigo-500/30">
+            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">仅看未建设（待补齐）</span>
+          </label>
+
+          <!-- 业务类型筛选 -->
+          <div>
+            <div class="text-xs text-slate-500 mb-2">业务类型</div>
+            <div class="flex flex-wrap gap-2" id="businessTypeFilters">
+              <!-- JS 渲染 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+</div>
+
+<!-- ===== 工作详情 Modal ===== -->
+<div id="detailModal" class="fixed inset-0 z-50 hidden">
+  <div class="modal-overlay absolute inset-0" onclick="closeDetailModal()"></div>
+  <div class="absolute inset-4 md:inset-10 lg:inset-20 glass rounded-2xl overflow-hidden flex flex-col animate-in">
+    <div class="flex items-center justify-between p-5 border-b border-white/5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center" id="modalIcon">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-white" id="modalTitle">工作名称</h2>
+          <p class="text-xs text-slate-400" id="modalSubtitle">所属阶段 / 子类别</p>
+        </div>
+      </div>
+      <button onclick="closeDetailModal()" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6" id="modalBody">
+      <!-- JS 渲染 -->
+    </div>
+    <div class="p-5 border-t border-white/5 flex justify-end gap-3">
+      <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-slate-300 transition-colors">关闭</button>
+      <button onclick="uploadSkillForWork()" class="px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:from-indigo-600 hover:to-purple-700 transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        上传 Skill 文件
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 全局上传 Modal ===== -->
+<div id="globalUploadModal" class="fixed inset-0 z-50 hidden">
+  <div class="modal-overlay absolute inset-0" onclick="closeGlobalUploadModal()"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg glass rounded-2xl overflow-hidden animate-in">
+    <div class="p-6 border-b border-white/5">
+      <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        上传自定义 Skill
+      </h2>
+      <p class="text-sm text-slate-400 mt-1">支持 JSON / YAML / Python / JS / Shell 等格式</p>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <!-- 关联工作选择 -->
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">关联到工作项 <span class="text-slate-500">(可选)</span></label>
+        <select id="uploadWorkSelect" class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:border-indigo-500/50 outline-none">
+          <option value="">— 不关联 —</option>
+        </select>
+      </div>
+
+      <!-- 名称 -->
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">Skill 名称</label>
+        <input type="text" id="uploadSkillName" placeholder="例如：竞品数据自动获取脚本" 
+          class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 outline-none">
+      </div>
+
+      <!-- 描述 -->
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">描述</label>
+        <textarea id="uploadSkillDesc" rows="2" placeholder="简述这个 Skill 的功能..." 
+          class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 outline-none resize-none"></textarea>
+      </div>
+
+      <!-- 文件拖放区 -->
+      <div class="skill-upload-zone p-8 text-center" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" multiple accept=".json,.yaml,.yml,.py,.js,.sh,.md,.ts,.tsx" class="hidden" onchange="handleFileSelect(event)">
+        <svg class="w-10 h-10 mx-auto mb-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        <p class="text-sm text-slate-300">拖拽文件到此处，或<span class="text-indigo-400 font-medium">点击上传</span></p>
+        <p class="text-xs text-slate-500 mt-1">支持 JSON / YAML / Python / JS / Shell / Markdown 等</p>
+      </div>
+
+      <!-- 已选文件列表 -->
+      <div id="selectedFiles" class="hidden space-y-2"></div>
+    </div>
+
+    <div class="p-6 border-t border-white/5 flex justify-end gap-3">
+      <button onclick="closeGlobalUploadModal()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-slate-300 transition-colors">取消</button>
+      <button onclick="submitUpload()" class="px-5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-medium hover:from-emerald-600 hover:to-green-700 transition-all">确认上传</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast 通知 ===== -->
+<div id="toast" class="fixed bottom-6 right-6 z-[60] hidden">
+  <div class="glass rounded-xl px-5 py-3 flex items-center gap-3 shadow-xl">
+    <div id="toastIcon" class="w-5 h-5"></div>
+    <span id="toastText" class="text-sm text-white"></span>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 数据定义 —— 完全基于 Excel 内容
+// ============================================================
+const WORKFLOW_DATA = [
+  // ========== 阶段 1：市场分析 ==========
+  {
+    phaseId: "market", phaseName: "市场分析", phaseIcon: "📊", phaseColor: "#3b82f6",
+    subCategories: [
+      {
+        name: "基本面分析",
+        works: [
+          { id: "m1_1", workName: "【行业-基本面分析】", workContent: "基本面盘点，明确项目推进OKR", freq: "1次/季度", duration: "1天", bizType: "通用", workType: ["信息整理","方案制定"], outputStandard: "【25年】-APP生态开发者运营项目管理-周会", skillFile: "", owner: "" },
+          { id: "m1_2", workName: "【媒体-基本面分析】", workContent: "输出媒体商业化分析文档", freq: "1次/季度", duration: "3天", bizType: "通用", workType: ["信息整理","方案制定"], outputStandard: "荣耀商业分析", skillFile: "", owner: "" },
+          { id: "m1_3", workName: "【项目-基本面分析】", workContent: "基本面盘点，明确项目推进OKR", freq: "1次/季度", duration: "1天", bizType: "通用", workType: ["信息整理","方案制定"], outputStandard: "【Y26】新场域情况盘点", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "竞品对标",
+        works: [
+          { id: "m2_1", workName: "【竞对数据获取】", workContent: "竞品份额回收&分析", freq: "1次/月", duration: "1天", bizType: "通用", workType: ["信息收集"], outputStandard: "【非厂商】份额对标-26.2月 厂商口径份额回收数据", skillFile: "", owner: "" },
+          { id: "m2_2", workName: "【竞品动作调研】", workContent: "竞品OKR回收", freq: "1次/季度", duration: "2h", bizType: "通用", workType: ["信息收集"], outputStandard: "Erick 总体 26Q1 更新", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "拓客地图扫描",
+        works: [
+          { id: "m3_1", workName: "【市场数据获取】", workContent: "数据源有竞对数据/厂商等, 盘点可拓展客户", freq: "1次/双月", duration: "30min-1h", bizType: "通用", workType: ["信息收集"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "m3_2", workName: "【拓客方案制定】", workContent: "明确客户拓展方案, 分发到具体行业运营", freq: "3-5次/双月", duration: "1h", bizType: "通用", workType: ["信息整理"], outputStandard: "26Q1长尾媒体覆盖", skillFile: "", owner: "" },
+        ]
+      },
+    ]
+  },
+
+  // ========== 阶段 2：流量接入 ==========
+  {
+    phaseId: "traffic", phaseName: "流量接入", phaseIcon: "🔄", phaseColor: "#10b981",
+    subCategories: [
+      {
+        name: "拓客建联",
+        works: [
+          { id: "t1_1", workName: "【建联方式获取】", workContent: "方式包括但不限于开发者后台/天眼查/找人脉等", freq: "1次/双月", duration: "30min-1h", bizType: "通用", workType: ["信息收集"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "t1_2", workName: "【拓客建联触达】", workContent: "路径上:盘架构找关键人 方式上:电话/见面拜访等", freq: "3-5次/双月", duration: "1h", bizType: "通用", workType: ["信息收集","沟通触达"], outputStandard: "百度架构 26.01更新\n华为架构（2）", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "流量接入 从0→1",
+        works: [
+          { id: "t2_1", workName: "【出方案推接入】", workContent: "结合媒体类型给到初步广告商业化解决方案&收益空间, 定位开发者顾虑点, 给到定制化解决方案", freq: "3-5次/双月", duration: "1h", bizType: "通用", workType: ["信息整理","沟通触达"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "t2_2", workName: "【合同对接】", workContent: "协同法务斡旋沟通 最大化腾讯利益", freq: "1次/半年", duration: "2-3天", bizType: "通用", workType: ["沟通触达"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "t2_3", workName: "【账户开通】", workContent: "引导创建账户", freq: "3-5次/双月", duration: "30min", bizType: "通用", workType: ["信息整理"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "t2_4", workName: "【接入协议适配】", workContent: "协议开发，规格匹配，字段匹配", freq: "按需", duration: "15天", bizType: "接口流量", workType: ["需求产出"], outputStandard: "厂商协议汇总", skillFile: "", owner: "" },
+          { id: "t2_5", workName: "【创建新广告位】", workContent: "广告位关联关系配置", freq: "1次/月", duration: "30min", bizType: "接口流量", workType: ["配置管理"], outputStandard: "VIVO广告位绑定流程", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "流量接入 从1→10",
+        works: [
+          { id: "t3_1", workName: "【流量放量】", workContent: "推进开发者放量/优化系统要求(放开耗时要求等)", freq: "1次/周", duration: "1h", bizType: "通用", workType: ["沟通触达"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "t3_2", workName: "【流量调优】", workContent: "推进ROI白名单过滤放开/冷启扶持等优化", freq: "1次/周", duration: "1h", bizType: "通用", workType: ["需求产出","配置管理"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+    ]
+  },
+
+  // ========== 阶段 3：形态样式 ==========
+  {
+    phaseId: "form", phaseName: "形态样式", phaseIcon: "🎨", phaseColor: "#f59e0b",
+    subCategories: [
+      {
+        name: "模版推荐",
+        works: [
+          { id: "f1_1", workName: "【模版调研】", workContent: "新模版样式开发者侧意愿&需求调研", freq: "1次/双月", duration: "1h", bizType: "SDK流量", workType: ["沟通触达"], outputStandard: "小游戏试玩-开发者接入意向调研", skillFile: "", owner: "" },
+          { id: "f1_2", workName: "【模版推荐】", workContent: "新模版样式提案", freq: "1次/双月", duration: "3h", bizType: "SDK流量", workType: ["沟通触达","方案制定"], outputStandard: "激励化新玩法介绍", skillFile: "", owner: "" },
+          { id: "f1_3", workName: "【竞品素材抓取】", workContent: "方式有人工刷机/找开发者回收等", freq: "1次/双月", duration: "3h", bizType: "SDK流量", workType: ["信息收集"], outputStandard: "万声份额对标分析", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "模版优化",
+        works: [
+          { id: "f2_1", workName: "【模版配置】", workContent: "根据开发者的体验需求，在运营标签&形态配置平台配置", freq: "多次/周", duration: "10min", bizType: "SDK流量", workType: ["配置管理"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "f2_2", workName: "【问题反馈】", workContent: "插页激励化模板测试及上线阶段，和媒体侧沟通产品方案，解答媒体疑问，同步产品需修复问题", freq: "多次/双月", duration: "1h", bizType: "SDK流量", workType: ["沟通触达","信息整理"], outputStandard: "七猫插页激励化接入问题整理", skillFile: "", owner: "" },
+          { id: "f2_3", workName: "【效果回收】", workContent: "模版效果数据回收&明确优化方向", freq: "1次/双月", duration: "30min", bizType: "SDK流量", workType: ["信息整理"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+    ]
+  },
+
+  // ========== 阶段 4：变现调优 ==========
+  {
+    phaseId: "monetize", phaseName: "变现调优", phaseIcon: "💰", phaseColor: "#ef4444",
+    subCategories: [
+      {
+        name: "诊断分析",
+        works: [
+          { id: "mo1_1", workName: "【收入异动监控】", workContent: "收入异动监控 & 原因下钻分析", freq: "1次/天", duration: "30min", bizType: "通用", workType: ["数据分析"], outputStandard: "厂商pushmail模版-Y26", skillFile: "厂商分场景数据监控.md", owner: "yorkyzhang" },
+          { id: "mo1_2", workName: "【流量链路漏斗分析】", workContent: "流量链路漏斗分析 & 优化空间定位", freq: "1次/周", duration: "1h", bizType: "通用", workType: ["数据分析"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "mo1_3", workName: "【场景对标分析】", workContent: "对比各厂商分场景指标，定位问题空间", freq: "1次/月", duration: "1h", bizType: "通用", workType: ["数据分析"], outputStandard: "2025厂商流量变现分析框架", skillFile: "", owner: "" },
+          { id: "mo1_4", workName: "【预算渗透分析】", workContent: "对比benchmark，定位预算渗透问题，并进行流量*预算链路漏斗分析", freq: "1次/周", duration: "1h", bizType: "通用", workType: ["数据分析"], outputStandard: "预算×流量异动分析\n厂商预算×流量诊断Agnet需求", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "效果优化",
+        works: [
+          { id: "mo2_1", workName: "【链路降损】", workContent: "根据链路漏斗，进行降损优化", freq: "1次/周", duration: "1h", bizType: "通用", workType: ["需求产出"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "mo2_2", workName: "【场景策略】", workContent: "针对客户场景特点，联动后端产研，输出解决方案", freq: "1次/周", duration: "3h", bizType: "通用", workType: ["需求产出"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "节点放量",
+        works: [
+          { id: "mo3_1", workName: "【节点放量】", workContent: "配合预算节点 推进媒体放量增加adload", freq: "按需", duration: "30min", bizType: "通用", workType: ["沟通触达"], outputStandard: "闲鱼0321冲量-APP流量侧信息", skillFile: "", owner: "" },
+        ]
+      },
+    ]
+  },
+
+  // ========== 阶段 5：体验管理 ==========
+  {
+    phaseId: "exp", phaseName: "体验管理", phaseIcon: "⚙️", phaseColor: "#8b5cf6",
+    subCategories: [
+      {
+        name: "性能优化",
+        works: [
+          { id: "e1_1", workName: "【SDK性能优化】", workContent: "SDK能力优化/数据获取/崩溃/卡顿/等问题", freq: "1次/周", duration: "30min", bizType: "SDK流量", workType: ["沟通触达"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "预算屏蔽",
+        works: [
+          { id: "e2_1", workName: "【预算开口打开】", workContent: "拉通审核/风控/法务，提升联盟素材标签准入率，提升可播预算", freq: "1次/周", duration: "2h", bizType: "通用", workType: ["信息整理","方案制定"], outputStandard: "联盟一审标签放宽评估-审核", skillFile: "", owner: "" },
+          { id: "e2_2", workName: "【预算屏蔽沟通】", workContent: "结合开发者屏蔽需求, 判断合理性, 给到屏蔽方案, 最大化预算打开", freq: "1次/天", duration: "30mins", bizType: "通用", workType: ["沟通触达","决策判断"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "e2_3", workName: "【预算放开沟通】", workContent: "梳理开发者屏蔽现状 落成看板, 制定放开屏蔽方案, 推进沟通", freq: "1次/月", duration: "1h", bizType: "通用", workType: ["沟通触达","方案制定"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "e2_4", workName: "【预算屏蔽配置】", workContent: "保护伞配置&审批", freq: "1次/天", duration: "10mins", bizType: "通用", workType: ["配置管理"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "合规相关",
+        works: [
+          { id: "e3_1", workName: "【合规政策应对】", workContent: "承接法务/风控/PA的合规要求，制定体验管理方案", freq: "按需", duration: "3天", bizType: "通用", workType: ["沟通触达","方案制定","决策判断"], outputStandard: "未保方案梳理-1204", skillFile: "", owner: "" },
+        ]
+      },
+    ]
+  },
+
+  // ========== 阶段 6：客户服务 ==========
+  {
+    phaseId: "service", phaseName: "客户服务", phaseIcon: "🤝", phaseColor: "#ec4899",
+    subCategories: [
+      {
+        name: "客户拜访",
+        works: [
+          { id: "s1_1", workName: "【拜访计划】", workContent: "制定拜访计划,规划合理路线", freq: "1次/季度", duration: "30min", bizType: "通用", workType: ["信息整理"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "s1_2", workName: "【拜访文档】", workContent: "客户拜访文档撰写/ 拜访沟通/ Todo跟进", freq: "1次/季度", duration: "3天", bizType: "通用", workType: ["信息整理","方案制定"], outputStandard: "厂商拜访文档 X AI自动化输出需求", skillFile: "", owner: "" },
+          { id: "s1_3", workName: "【拜访纪要】", workContent: "输出拜访纪要, 形成产品需求 推进落地", freq: "1次/季度", duration: "30min", bizType: "通用", workType: ["信息整理","方案制定"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "日常答疑",
+        works: [
+          { id: "s2_1", workName: "【日常答疑】", workContent: "常规内容答疑", freq: "1次/天", duration: "30min", bizType: "通用", workType: ["沟通触达"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "结算相关",
+        works: [
+          { id: "s3_1", workName: "【结算】", workContent: "承接对账，结算流程解答、询证函邮寄等日常沟通", freq: "1次/月", duration: "10min", bizType: "接口流量", workType: ["信息整理"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "反作弊相关",
+        works: [
+          { id: "s4_1", workName: "【反作弊】", workContent: "反作弊处罚沟通/ 信息确认交互", freq: "按需", duration: "30min", bizType: "通用", workType: ["信息整理"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+      {
+        name: "赛道沙龙",
+        works: [
+          { id: "s5_1", workName: "【市场相关】", workContent: "沙龙主体/流程/宣发", freq: "1次/季度", duration: "1天", bizType: "SDK流量", workType: ["信息整理"], outputStandard: "2025联盟内容建设-沙龙&直播SOP", skillFile: "", owner: "" },
+          { id: "s5_2", workName: "【沙龙材料】", workContent: "输出沙龙宣讲材料", freq: "1次/季度", duration: "1周", bizType: "SDK流量", workType: ["信息整理","方案制定"], outputStandard: "", skillFile: "", owner: "" },
+          { id: "s5_3", workName: "【客户邀请】", workContent: "客户逐一邀约 明确参会人", freq: "1次/季度", duration: "30min", bizType: "SDK流量", workType: ["沟通触达"], outputStandard: "0710工具线下沙龙 - 开发者问题跟进", skillFile: "", owner: "" },
+          { id: "s5_4", workName: "【沙龙纪要】", workContent: "输出沙龙邮件, 整理回收需求, 推进落地", freq: "1次/季度", duration: "1h", bizType: "SDK流量", workType: ["信息整理"], outputStandard: "", skillFile: "", owner: "" },
+        ]
+      },
+    ]
+  },
+];
+
+// ============================================================
+// 状态管理
+// ============================================================
+let currentPhase = WORKFLOW_DATA[0].phaseId;
+let uploadedSkills = [];
+
+// ============================================================
+// 模拟已上传的 5 个 Skill（带真实可下载文件内容）
+// ============================================================
+const MOCK_SKILLS_DATA = [
+  {
+    id: 'mock_001', name: '竞对数据获取 Skill', description: '自动抓取竞品市场份额数据并生成分析报告',
+    workId: 'm2_1',
+    files: [
+      { name: 'competitor_analysis.py', size: 4280, data: generateMockFile('competitor_analysis.py', '# 竞对数据获取 Skill\n# 自动抓取竞品市场份额数据\nimport requests\nimport json\n\ndef fetch_competitor_data():\n    """获取竞品份额数据"""\n    url = "https://api.example.com/competitor/share"\n    headers = {"Authorization": "Bearer TOKEN"}\n    resp = requests.get(url, headers=headers)\n    return resp.json()\n\ndef analyze_market(data):\n    """分析市场趋势"""\n    report = {}\n    for item in data:\n        brand = item["brand"]\n        share = item["share"]\n        report[brand] = {"share": share, "trend": "↑" if share > 0.1 else "↓"}\n    return report\n\nif __name__ == "__main__":\n    data = fetch_competitor_data()\n    result = analyze_market(data)\n    print(json.dumps(result, indent=2, ensure_ascii=False))\n') },
+      { name: 'config.json', size: 520, data: generateMockFile('config.json', '{\n  "skill_name": "竞对数据获取",\n  "version": "1.2.0",\n  "schedule": "0 9 * * 1",\n  "targets": ["百度", "华为", "阿里", "字节"],\n  "output_format": "markdown"\n}') },
+    ],
+    createdAt: '2026-03-15T08:30:00Z'
+  },
+  {
+    id: 'mock_002', name: '拓客建联触达 Skill', description: '通过多渠道（电话/邮件/拜访）自动化触达目标客户',
+    workId: 't1_2',
+    files: [
+      { name: 'outreach_agent.js', size: 6140, data: generateMockFile('outreach_agent.js', '/**\n * 拓客建联触达 Skill\n * 自动化客户触达流程\n */\nclass OutreachAgent {\n  constructor(config) {\n    this.channels = config.channels || [\'phone\', \'email\', \'visit\'];\n    this.targets = config.targets || [];\n    this.log = [];\n  }\n\n  async loadTargets() {\n    // 从天眼查/开发者后台加载目标客户架构\n    const response = await fetch(\'/api/targets\');\n    this.targets = await response.json();\n    console.log(`Loaded ${this.targets.length} targets`);\n  }\n\n  async reachOut(target, channel) {\n    const template = this.getTemplate(channel);\n    const message = template.replace(\'{{company}}\', target.company);\n    // 发送触达消息\n    await this.send(channel, target.contact, message);\n    this.log.push({ target: target.company, channel, time: new Date() });\n  }\n\n  getTemplate(channel) {\n    const templates = {\n      phone: \'您好，我是XX联盟运营{{company}}...\',\n      email: \'尊敬的{{company}}合作伙伴...\',\n      visit: \'预约拜访：关于{{company}}的深度合作方案\'\n    };\n    return templates[channel];\n  }\n}\n\nmodule.exports = OutreachAgent;') },
+      { name: 'templates.yaml', size: 890, data: generateMockFile('templates.yaml', '# 拓客触达模板配置\nchannels:\n  phone:\n    priority: 1\n    max_per_day: 20\n    script: |\n      您好，我是XX联盟运营团队\n      了解到贵司在{industry}领域有深厚积累\n      希望探讨合作可能\n  email:\n    priority: 2\n    subject: "联盟合作邀约 - {company}"\n    max_per_day: 50\n  visit:\n    priority: 3\n    require_approval: true\n    preparation_days: 3\n') },
+    ],
+    createdAt: '2026-03-18T10:15:00Z'
+  },
+  {
+    id: 'mock_003', name: '行业基本面分析 Skill', description: '季度行业基本面盘点，自动生成OKR推进报告',
+    workId: 'm1_1',
+    files: [
+      { name: 'fundamental_analysis.md', size: 3520, data: generateMockFile('fundamental_analysis.md', '# 行业基本面分析 Skill\n\n## 功能概述\n- 季度自动盘点行业基本面数据\n- 输出 APP生态开发者运营项目管理报告\n- 明确项目推进 OKR\n\n## 数据源\n| 来源 | 更新频率 | 关键指标 |\n|------|---------|----------|\n| 第三方研报 | 月度 | 市场规模、增长率 |\n| 内部CRM | 实时 | 客户数、转化率 |\n| 竞品监控 | 周 | 份额变化、新品动态 |\n\n## 输出模板\n### 25年 Q1 基本面报告\n1. **市场规模**: XX亿，同比+YY%\n2. **核心玩家**: TOP5 变化\n3. **机会点**: 3个高潜力赛道\n4. **风险预警**: 政策/技术变化\n\n## 下一步行动\n> 基于【Y26】新场域情况盘点，调整Q2 OKR\n') },
+      { name: 'analyzer.py', size: 5120, data: generateMockFile('analyzer.py', '# -*- coding: utf-8 -*-\n"""基本面分析引擎"""\nimport pandas as pd\nfrom datetime import datetime\n\nclass FundamentalAnalyzer:\n    def __init__(self, quarter, year=2026):\n        self.quarter = quarter\n        self.year = year\n        self.report = {}\n\n    def collect_data(self):\n        """收集各维度数据"""\n        # 市场规模\n        self.report["market_size"] = self._fetch_market_size()\n        # 竞品格局\n        self.report["competitive"] = self._analyze_competition()\n        # 客户画像\n        self.report["customer_profile"] = self._profile_customers()\n        return self.report\n\n    def generate_okr(self):\n        """基于分析生成OKR建议"""\n        okr = {\n            "objective": f"Q{self.quarter} 核心增长目标",\n            "key_results": [\n                f"新增客户 +{self._suggest_target()}",\n                "市场份额提升 X%",\n                "NPS > 80"\n            ]\n        }\n        return okr\n\n    def export_report(self, format="markdown"):\n        """导出分析报告"""\n        report_text = f"# {self.year}Q{self.quarter} 基本面报告\\n\\n"\n        report_text += str(self.report)\n        return report_text\n\nif __name__ == "__main__":\n    analyzer = FundamentalAnalyzer(quarter=1, year=2026)\n    analyzer.collect_data()\n    print(analyzer.generate_okr())\n') },
+    ],
+    createdAt: '2026-04-01T14:00:00Z'
+  },
+  {
+    id: 'mock_004', name: '流量效果监控 Skill', description: '实时监控 SDK/API 接入流量质量与转化漏斗',
+    workId: 'e2_1',
+    files: [
+      { name: 'monitor.sh', size: 1580, data: generateMockFile('monitor.sh', '#!/bin/bash\n# 流量效果监控 Skill - Shell 脚本\nset -e\n\nAPI_BASE="https://metrics.internal.api/v1"\nTOKEN="${MONITOR_TOKEN}"\n\necho "=== 流量效果监控 $(date) ==="\n\n# 1. 获取今日流量概览\necho "\\n[1] 今日流量概览:"\ncurl -s -H "Authorization: Bearer $TOKEN" \\\n  "$API_BASE/dashboard/today" | jq .\n\n# 2. SDK 接入健康度\necho "\\n[2] SDK 接入状态:"\ncurl -s -H "Authorization: Bearer $TOKEN" \\\n  "$API_BASE/sdk/health" | jq \'\'\'.status, .latency_p99\'\'\'\n\n# 3. 转化漏斗\necho "\\n[3] 转化漏斗:"\ncurl -s -H "Authorization: Bearer $TOKEN" \\\n  "$API_BASE/funnel/conversion" | jq \'.stages[] | "\(.name): \\(.count) (\\(.rate|%))"\'\n\n# 4. 异常告警检查\necho "\\n[4] 告警检查:"\nALERTS=$(curl -s -H "Authorization: Bearer $TOKEN" "$API_BASE/alerts/active")\necho "$ALERTS" | jq length | xargs -I{} echo "当前活跃告警: {} 条"\n\necho "\\n=== 监控完成 ==="\n') },
+      { name: 'dashboard_config.json', size: 740, data: generateMockFile('dashboard_config.json', '{\n  "dashboard_name": "流量效果监控面板",\n  "refresh_interval": "5m",\n  "panels": [\n    {"id": "pv_total", "title": "总PV", "type": "counter", "unit": "req/s"},\n    {"id": "sdk_latency", "title": "SDK延迟P99", "type": "gauge", "threshold_ms": 500},\n    {"id": "funnel", "title": "转化漏斗", "type": "funnel", "steps": ["曝光","点击","接入","活跃","变现"]},\n    {"id": "error_rate", "title": "错误率", "type": "line", "alert": ">1%"}\n  ],\n  "alerts": {\n    "webhook": "https://hooks.slack.com/xxx",\n    "channels": ["oncall", "#ops-alert"]\n  }\n}') },
+    ],
+    createdAt: '2026-04-05T09:20:00Z'
+  },
+  {
+    id: 'mock_005', name: '开发者答疑 Skill', description: '基于知识库自动回复开发者常见问题，支持多轮对话',
+    workId: 's1_1',
+    files: [
+      { name: 'faq_bot.py', size: 7840, data: generateMockFile('faq_bot.py', '# -*- coding: utf-8 -*-\n"""开发者 FAQ 自动答疑机器人"""\nimport json\nimport re\nfrom dataclasses import dataclass\nfrom typing import List, Optional\n\n@dataclass\nclass FAQEntry:\n    question: str\n    answer: str\n    category: str\n    keywords: List[str]\n    confidence: float = 0.95\n\nclass DevFAQBot:\n    """开发者答疑 Skill - 基于 FAQ 知识库的自动回复系统"""\n    \n    def __init__(self):\n        self.faqs: List[FAQEntry] = []\n        self.load_knowledge_base()\n        \n    def load_knowledge_base(self):\n        """加载 FAQ 知识库"""\n        kb_data = [\n            {"q": "如何接入SDK？", "a": "请访问 developer.example.com/sdk 下载最新版本...", "cat": "接入指南", "kw": ["SDK","接入","安装"]},\n            {"q": "流量结算周期是多久？", "a": "SDK流量按月结算，每月5号出具上月账单...", "cat": "财务结算", "kw": ["结算","付款","账单"]},\n            {"q": "API调用频率限制？", "a": "标准版1000次/分钟，企业版可申请提升...", "cat": "技术限制", "kw": ["限制","频率","QPS"]},\n            {"q": "如何查看我的收益？", "a": "登录后台 → 数据中心 → 收益概览，支持按日/周/月查询...", "cat": "收益查询", "kw": ["收益","分成","收入"]},\n            {"q": "账号被封怎么办？", "a": "请提交工单说明情况，审核团队会在24h内处理...", "cat": "账号问题", "kw": ["封号","封禁","申诉"]},\n        ]\n        for item in kb_data:\n            self.faqs.append(FAQEntry(\n                question=item["q"], answer=item["a"],\n                category=item["cat"], keywords=item["kw"]\n            ))\n    \n    def query(self, user_question: str) -> Optional[dict]:\n        """匹配最佳答案"""\n        best_match = None\n        best_score = 0\n        \n        for faq in self.faqs:\n            score = self._calculate_score(user_question, faq)\n            if score > best_score:\n                best_score = score\n                best_match = faq\n        \n        if best_match and best_score > 0.3:\n            return {\n                "answer": best_match.answer,\n                "category": best_match.category,\n                "confidence": round(best_score, 2),\n                "suggested": True\n            }\n        \n        return {"answer": "抱歉未找到匹配答案，将转人工处理...", "category": "人工转接", "confidence": 0, "suggested": False}\n    \n    def _calculate_score(self, query: str, faq: FAQEntry) -> float:\n        """计算问答匹配分数"""\n        query_lower = query.lower()\n        score = 0\n        \n        # 关键词匹配\n        for kw in faq.keywords:\n            if kw.lower() in query_lower:\n                score += 0.4\n        \n        # 文本相似度（简化版）\n        words_q = set(re.sub(r\'[\\W_]+\', \' \', query).lower().split())\n        words_a = set(re.sub(r\'[\\W_]+\', \' \', faq.question).lower().split())\n        if words_q and words_a:\n            score += len(words_q & words_a) / len(words_q | words_a) * 0.6\n        \n        return min(score, 1.0)\n\n\nif __name__ == "__main__":\n    bot = DevFAQBot()\n    test_questions = ["怎么接SDK", "多久结一次钱", "API限流了吗"]\n    for q in test_questions:\n        result = bot.query(q)\n        print(f"Q: {q}")\n        print(f"A: [{result[\'category\']}] {result[\'answer\']}")\n        print(f"   置信度: {result[\'confidence\']}\\n")\n') },
+      { name: 'knowledge_base.json', size: 1250, data: generateMockFile('knowledge_base.json', '{\n  "version": "2.1",\n  "last_updated": "2026-04-05",\n  "categories": ["接入指南", "技术限制", "财务结算", "收益查询", "账号问题"],\n  "stats": {\n    "total_faqs": 128,\n    "auto_resolve_rate": 0.87,\n    "avg_response_time_ms": 120\n  },\n  "escalation_rule": "当 confidence < 0.3 时转人工客服"\n}') },
+    ],
+    createdAt: '2026-04-07T16:45:00Z'
+  }
+];
+
+/** 生成模拟文件的 Data URL */
+function generateMockFile(filename, content) {
+  const mimeMap = {
+    '.py': 'text/x-python',
+    '.js': 'application/javascript',
+    '.json': 'application/json',
+    '.yaml': 'text/yaml',
+    '.yml': 'text/yaml',
+    '.sh': 'application/x-sh',
+    '.md': 'text/markdown',
+    '.ts': 'application/typescript'
+  };
+  const ext = '.' + filename.split('.').pop();
+  const mime = mimeMap[ext] || 'text/plain';
+  // 使用 base64 编码内容
+  const encoded = btoa(unescape(encodeURIComponent(content)));
+  return `data:${mime};base64,${encoded}`;
+}
+
+let selectedFiles = [];
+let currentWorkForUpload = null;
+
+// 从 localStorage 加载
+function loadSkills() {
+  try {
+    const saved = localStorage.getItem('workflow_skills');
+    if (saved) {
+      uploadedSkills = JSON.parse(saved);
+    } else {
+      // localStorage 为空时，加载模拟 Skill 数据（带真实可下载文件）
+      uploadedSkills = MOCK_SKILLS_DATA.map(s => ({ ...s }));
+      saveSkills();
+      console.log('[Skill Hub] 已加载 ' + uploadedSkills.length + ' 个模拟 Skill（可下载）');
+    }
+  } catch(e) {
+    // 解析失败时也用模拟数据兜底
+    uploadedSkills = MOCK_SKILLS_DATA.map(s => ({ ...s }));
+  }
+}
+function saveSkills() {
+  localStorage.setItem('workflow_skills', JSON.stringify(uploadedSkills));
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadSkills();
+  initParticles();
+  renderPhaseTabs();
+  renderWorks(currentPhase);
+  renderBusinessTypeFilters();
+  populateWorkSelect();
+  updateStats();
+  renderCallRanking();
+  renderContributorRanking();
+
+  // 搜索事件
+  document.getElementById('globalSearch').addEventListener('input', (e) => {
+    applyFilters(e.target.value.trim());
+  });
+
+  // 拖放事件
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+});
+
+// ============================================================
+// 渲染函数
+// ============================================================
+
+// 渲染阶段 Tab
+function renderPhaseTabs() {
+  const container = document.getElementById('phaseTabs');
+  container.innerHTML = WORKFLOW_DATA.map(p => `
+    <button class="phase-tab ${p.phaseId === currentPhase ? 'active' : ''}" onclick="switchPhase('${p.phaseId}')">
+      <span class="mr-1.5">${p.phaseIcon}</span>${p.phaseName}
+      <span class="ml-1.5 text-xs opacity-60">${countWorksInPhase(p.phaseId)}项</span>
+    </button>
+  `).join('');
+}
+
+// 统计某阶段的工项数
+function countWorksInPhase(phaseId) {
+  const phase = WORKFLOW_DATA.find(p => p.phaseId === phaseId);
+  if (!phase) return 0;
+  return phase.subCategories.reduce((sum, sc) => sum + sc.works.length, 0);
+}
+
+// 切换阶段
+function switchPhase(phaseId) {
+  currentPhase = phaseId;
+  renderPhaseTabs();
+  renderWorks(phaseId);
+}
+
+// 渲染工作列表
+function renderWorks(phaseId, searchTerm = '') {
+  const container = document.getElementById('worksContainer');
+  const phase = WORKFLOW_DATA.find(p => p.phaseId === phaseId);
+  if (!phase) return;
+
+  let html = '';
+
+  phase.subCategories.forEach((sc, sci) => {
+    // 过滤
+    let filteredWorks = sc.works.filter(w => {
+      if (searchTerm && !w.workName.includes(searchTerm) && !w.workContent.includes(searchTerm)) return false;
+      
+      const hasSkill = checkWorkHasSkill(w.id);
+      if (document.getElementById('filterHasSkill')?.checked && !hasSkill) return false;
+      if (document.getElementById('filterNoSkill')?.checked && hasSkill) return false;
+
+      // 业务类型筛选
+      const activeBizTypes = [...document.querySelectorAll('.biz-type-chk:checked')].map(el => el.value);
+      if (activeBizTypes.length > 0 && !activeBizTypes.includes(w.bizType)) return false;
+
+      return true;
+    });
+
+    if (filteredWorks.length === 0 && searchTerm) return;
+
+    html += `
+    <div class="animate-in stagger-${Math.min(sci+1, 5)}">
+      <div class="flex items-center gap-3 mb-3 mt-5 first:mt-0">
+        <h2 class="text-base font-bold text-white">${sc.name}</h2>
+        <span class="text-xs text-slate-500">${filteredWorks.length} 项工作</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    `;
+
+    filteredWorks.forEach((w, wi) => {
+      const hasSkill = checkWorkHasSkill(w.id);
+      const skills = getWorkSkills(w.id);
+      const phaseClass = getPhaseClass(phaseId);
+
+      html += `
+      <div class="glass-card rounded-xl p-4 work-item ${phaseClass}">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <h3 class="text-sm font-semibold text-white leading-tight">${w.workName}</h3>
+          ${hasSkill ? `<span class="skill-badge shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Skill ×${skills.length}</span>` : `<span class="no-skill-badge shrink-0">待建设</span>`}
+        </div>
+        
+        <p class="text-xs text-slate-400 leading-relaxed mb-3 line-clamp-2">${w.workContent}</p>
+        
+        <div class="flex flex-wrap gap-1.5 mb-3">
+          <span class="tag-pill ${getBizTypeClass(w.bizType)}">${w.bizType}</span>
+          ${w.workType.map(t => `<span class="tag-pill ${getWorkTypeClass(t)}">${t}</span>`).join('')}
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-white/5">
+          <div class="flex items-center gap-3">
+            <span title="频次">🕐 ${w.freq}</span>
+            <span title="时长">⏱️ ${w.duration}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            ${w.owner ? `<span class="text-slate-400">@${w.owner}</span>` : ''}
+            <button onclick='showDetail("${w.id}")' class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">详情 →</button>
+          </div>
+        </div>
+
+        ${hasSkill ? `
+        <div class="mt-2 pt-2 border-t border-white/5 space-y-1">
+          ${skills.map(s => `
+            <div class="flex items-center gap-2 text-xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span class="text-slate-400 truncate flex-1">${s.name}</span>
+              <span class="text-slate-600">${s.files.length} 文件</span>
+              <button onclick='downloadSkillFiles("${s.id}")' class="btn-download" title="下载 Skill 文件">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                下载
+              </button>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        <button onclick='openUploadForWork("${w.id}")' class="mt-3 w-full py-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs font-medium transition-all border border-indigo-500/20 hover:border-indigo-500/40 flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          上传 Skill
+        </button>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html || '<div class="text-center py-12 text-slate-500">没有匹配的工作项</div>';
+}
+
+// 获取阶段 CSS 类
+function getPhaseClass(phaseId) {
+  const map = { market: 'phase-market', traffic: 'phase-traffic', form: 'phase-form', monetize: 'phase-monetize', exp: 'phase-exp', service: 'phase-service' };
+  return map[phaseId] || '';
+}
+
+// 业务类型 tag 类
+function getBizTypeClass(type) {
+  if (type === '通用') return 'tag-general';
+  if (type === 'SDK流量') return 'tag-sdk';
+  if (type === '接口流量') return 'tag-api';
+  return 'tag-general';
+}
+
+// 工作类型 tag 类
+function getWorkTypeClass(type) {
+  const map = {
+    '信息收集': 'type-info', '信息整理': 'type-info',
+    '沟通触达': 'type-comm', '方案制定': 'type-plan',
+    '需求产出': 'type-demand', '配置管理': 'type-config',
+    '数据分析': 'type-data', '决策判断': 'type-decision'
+  };
+  return map[type] || 'type-info';
+}
+
+// 检查工作是否有 Skill
+function checkWorkHasSkill(workId) {
+  return uploadedSkills.some(s => s.workId === workId);
+}
+
+// 获取工作的所有 Skills
+function getWorkSkills(workId) {
+  return uploadedSkills.filter(s => s.workId === workId);
+}
+
+// 渲染阶段概览
+function renderPhaseOverview() {
+  const phase = WORKFLOW_DATA.find(p => p.phaseId === currentPhase);
+  if (!phase) return;
+
+  const total = countWorksInPhase(currentPhase);
+  const withSkill = phase.subCategories.reduce((sum, sc) => {
+    return sum + sc.works.filter(w => checkWorkHasSkill(w.id)).length;
+  }, 0);
+
+  const container = document.getElementById('phaseOverview');
+  container.innerHTML = phase.subCategories.map(sc => {
+    const totalInCat = sc.works.length;
+    const withSkillInCat = sc.works.filter(w => checkWorkHasSkill(w.id)).length;
+    const pct = totalInCat > 0 ? Math.round(withSkillInCat / totalInCat * 100) : 0;
+    return `
+    <div>
+      <div class="flex items-center justify-between text-sm mb-1">
+        <span class="text-slate-300">${sc.name}</span>
+        <span class="text-slate-500">${withSkillInCat}/${totalInCat}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// 渲染业务类型分布
+function renderBusinessTypeDist() {
+  const dist = {};
+  WORKFLOW_DATA.forEach(p => p.subCategories.forEach(sc => sc.works.forEach(w => {
+    dist[w.bizType] = (dist[w.bizType] || 0) + 1;
+  })));
+
+  const colors = { '通用': '#6366f1', 'SDK流量': '#10b981', '接口流量': '#f59e0b' };
+  const total = Object.values(dist).reduce((a,b)=>a+b,0);
+
+  const container = document.getElementById('businessTypeDist');
+  container.innerHTML = Object.entries(dist).map(([type, count]) => `
+    <div class="flex items-center gap-2">
+      <div class="w-2.5 h-2.5 rounded-full" style="background:${colors[type]||'#6366f1'}"></div>
+      <span class="text-xs text-slate-300 flex-1">${type}</span>
+      <span class="text-xs text-slate-500">${count} 项</span>
+      <div class="w-16 progress-bar"><div class="progress-fill" style="width:${count/total*100}%;background:${colors[type]||'#6366f1'}"></div></div>
+    </div>
+  `).join('');
+
+  document.getElementById('businessTypesCount').textContent = Object.keys(dist).length;
+}
+
+// 渲染业务类型筛选器
+function renderBusinessTypeFilters() {
+  const types = ['通用','SDK流量','接口流量'];
+  const container = document.getElementById('businessTypeFilters');
+  container.innerHTML = types.map(t => `
+    <label class="cursor-pointer">
+      <input type="checkbox" value="${t}" class="biz-type-chk hidden" onchange="applyFilters()">
+      <span class="tag-pill ${getBizTypeClass(t)} text-xs select-none">${t}</span>
+    </label>
+  `).join('');
+}
+
+// 更新统计
+function updateStats() {
+  let totalWorks = 0;
+  let withSkillWorks = new Set();
+  WORKFLOW_DATA.forEach(p => p.subCategories.forEach(sc => {
+    totalWorks += sc.works.length;
+    sc.works.forEach(w => {
+      if (checkWorkHasSkill(w.id)) withSkillWorks.add(w.id);
+    });
+  }));
+
+  document.getElementById('totalWorks').textContent = totalWorks;
+  document.getElementById('skillCount').textContent = uploadedSkills.length;
+  const rate = totalWorks > 0 ? Math.round(withSkillWorks.size / totalWorks * 100) : 0;
+  document.getElementById('coverageRate').textContent = rate + '%';
+  document.getElementById('coverageBar').style.width = rate + '%';
+
+  // 更新右侧 Skill 列表
+  renderUploadedSkillsList();
+}
+
+// 渲染已上传 Skills 列表
+function renderUploadedSkillsList() {
+  const container = document.getElementById('uploadedSkillsList');
+  document.getElementById('skillListCount').textContent = `${uploadedSkills.length} 个文件`;
+
+  if (uploadedSkills.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-6 text-slate-500 text-sm">
+        <svg class="w-10 h-10 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        还没有上传的 Skill<br>点击「上传 Skill」开始
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = uploadedSkills.map((skill, idx) => {
+    const workInfo = findWorkById(skill.workId);
+    return `
+    <div class="uploaded-skill-item rounded-lg p-3 bg-white/[0.02] border border-white/5">
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white truncate">${skill.name}</div>
+          <div class="text-xs text-slate-500 mt-0.5 truncate">${skill.description || '无描述'}</div>
+          <div class="flex items-center gap-2 mt-1.5">
+            <span class="text-[10px] text-slate-500">${skill.files.map(f=>f.name).join(', ')}</span>
+            ${workInfo ? `<span class="text-[10px] text-indigo-400">→ ${workInfo.workName.slice(0,15)}</span>` : ''}
+          </div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button onclick='downloadSkillFiles("${skill.id}")' class="w-6 h-6 rounded flex items-center justify-center hover:bg-emerald-500/10 text-slate-500 hover:text-emerald-400 transition-colors" title="下载文件">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          </button>
+          <button onclick="deleteSkill(${idx})" class="w-6 h-6 rounded flex items-center justify-center hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-colors" title="删除">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 根据 ID 找工作项
+function findWorkById(workId) {
+  for (const p of WORKFLOW_DATA) {
+    for (const sc of p.subCategories) {
+      const found = sc.works.find(w => w.id === workId);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+// 应用筛选
+function applyFilters(searchTerm) {
+  if (typeof searchTerm !== 'string') {
+    searchTerm = document.getElementById('globalSearch').value.trim();
+  }
+  renderWorks(currentPhase, searchTerm);
+}
+
+// 填充工作选择下拉框
+function populateWorkSelect() {
+  const select = document.getElementById('uploadWorkSelect');
+  select.innerHTML = '<option value="">— 不关联 —</option>' +
+    WORKFLOW_DATA.map(p =>
+      p.subCategories.map(sc =>
+        sc.works.map(w => `<option value="${w.id}">${p.phaseName} > ${sc.name} > ${w.workName}</option>`).join('')
+      ).join('')
+    ).join('');
+}
+
+// ============================================================
+// Modal 操作
+// ============================================================
+function showDetail(workId) {
+  const work = findWorkById(workId);
+  if (!work) return;
+  const phase = WORKFLOW_DATA.find(p => p.subCategories.some(sc => sc.works.some(w => w.id === workId)));
+  const subCat = phase?.subCategories.find(sc => sc.works.some(w => w.id === workId));
+  const hasSkill = checkWorkHasSkill(workId);
+
+  document.getElementById('modalTitle').textContent = work.workName;
+  document.getElementById('modalSubtitle').textContent = `${phase?.phaseName} / ${subCat?.name}`;
+
+  const skills = getWorkSkills(workId);
+  document.getElementById('modalBody').innerHTML = `
+    <div class="space-y-6">
+      <section>
+        <h3 class="text-sm font-semibold text-indigo-300 mb-2 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          工作内容
+        </h3>
+        <p class="text-sm text-slate-300 leading-relaxed bg-white/[0.02] rounded-lg p-4 border border-white/5">${work.workContent.replace(/\n/g,'<br>')}</p>
+      </section>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white/[0.02] rounded-lg p-4 border border-white/5">
+          <div class="text-xs text-slate-500 mb-1">执行频率</div>
+          <div class="text-sm font-semibold text-white">🕐 ${work.freq}</div>
+        </div>
+        <div class="bg-white/[0.02] rounded-lg p-4 border border-white/5">
+          <div class="text-xs text-slate-500 mb-1">单次时长</div>
+          <div class="text-sm font-semibold text-white">⏱️ ${work.duration}</div>
+        </div>
+      </div>
+
+      <section>
+        <h3 class="text-sm font-semibold text-indigo-300 mb-2">分类标签</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="tag-pill ${getBizTypeClass(work.bizType)}">${work.bizType}</span>
+          ${work.workType.map(t => `<span class="tag-pill ${getWorkTypeClass(t)}">${t}</span>`).join('')}
+        </div>
+      </section>
+
+      <section>
+        <h3 class="text-sm font-semibold text-indigo-300 mb-2 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          输出标准
+        </h3>
+        <div class="bg-white/[0.02] rounded-lg p-4 border border-white/5 text-sm text-slate-300 leading-relaxed">${work.outputStandard ? work.outputStandard.replace(/\n/g,'<br>') : '<span class="text-slate-500 italic">暂无</span>'}</div>
+      </section>
+
+      ${work.skillFile ? `
+      <section>
+        <h3 class="text-sm font-semibold text-emerald-300 mb-2 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 101.414 1.414l6.586-6.586a4 4 0 00-5.656-5.656l-6.415 6.415a2 2 0 000 2.828 2 2 0 002.828 0L16 8"/></svg>
+          现有 Skill 文件
+        </h3>
+        <div class="bg-emerald-500/5 rounded-lg p-4 border border-emerald-500/20 text-sm text-emerald-300">${work.skillFile}${work.owner ? ` <span class="text-emerald-400/60">(负责人: ${work.owner})</span>` : ''}</div>
+      </section>
+      ` : ''}
+
+      ${hasSkill ? `
+      <section>
+        <h3 class="text-sm font-semibold text-emerald-300 mb-2">已上传的 Skill (${skills.length})</h3>
+        <div class="space-y-2">
+          ${skills.map(s => `
+            <div class="bg-white/[0.03] rounded-lg p-3 border border-white/5">
+              <div class="flex items-start justify-between gap-2">
+                <div class="font-medium text-sm text-white">${s.name}</div>
+                <button onclick='downloadSkillFiles("${s.id}")' class="btn-download shrink-0" title="下载此 Skill 全部文件">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  下载全部
+                </button>
+              </div>
+              <div class="text-xs text-slate-500 mt-1">${s.description || '-'}</div>
+              <div class="text-xs text-indigo-400 mt-1">📎 ${s.files.map(f=>f.name).join(', ')}</div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+      ` : ''}
+
+      ${!hasSkill ? `
+      <section>
+        <div class="bg-amber-500/5 rounded-lg p-4 border border-amber-500/20 text-sm text-amber-200/80 flex items-start gap-2">
+          <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          该工作项尚未建设 Skill，点击下方按钮上传自动化脚本。
+        </div>
+      </section>
+      ` : ''}
+    </div>
+  `;
+
+  currentWorkForUpload = workId;
+  document.getElementById('detailModal').classList.remove('hidden');
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.add('hidden');
+  currentWorkForUpload = null;
+}
+
+// 打开全局上传弹窗
+function openGlobalUploadModal() {
+  resetUploadForm();
+  document.getElementById('globalUploadModal').classList.remove('hidden');
+}
+
+function closeGlobalUploadModal() {
+  document.getElementById('globalUploadModal').classList.add('hidden');
+  selectedFiles = [];
+  renderSelectedFiles();
+}
+
+// 为某个工作打开上传弹窗
+function openUploadForWork(workId) {
+  currentWorkForUpload = workId;
+  resetUploadForm();
+  document.getElementById('uploadWorkSelect').value = workId;
+  document.getElementById('globalUploadModal').classList.remove('hidden');
+
+  const work = findWorkById(workId);
+  if (work) {
+    document.getElementById('uploadSkillName').value = `Skill: ${work.workName}`;
+  }
+}
+
+function resetUploadForm() {
+  document.getElementById('uploadSkillName').value = '';
+  document.getElementById('uploadSkillDesc').value = '';
+  document.getElementById('uploadWorkSelect').value = '';
+  selectedFiles = [];
+  renderSelectedFiles();
+}
+
+// 从详情页上传
+function uploadSkillForWork() {
+  closeDetailModal();
+  openUploadForWork(currentWorkForUpload);
+}
+
+// ============================================================
+// 文件处理
+// ============================================================
+function handleFileSelect(event) {
+  handleFiles(event.target.files);
+}
+
+function handleFiles(files) {
+  for (const file of files) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      selectedFiles.push({ name: file.name, size: file.size, type: file.type, data: e.target.result });
+      renderSelectedFiles();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderSelectedFiles() {
+  const container = document.getElementById('selectedFiles');
+  if (selectedFiles.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+  container.classList.remove('hidden');
+  container.innerHTML = selectedFiles.map((f, i) => `
+    <div class="flex items-center gap-3 bg-white/[0.03] rounded-lg px-3 py-2 border border-white/5">
+      <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <span class="text-sm text-slate-300 flex-1 truncate">${f.name}</span>
+      <span class="text-xs text-slate-500">${formatSize(f.size)}</span>
+      <button onclick="removeSelectedFile(${i})" class="text-slate-500 hover:text-red-400 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+function removeSelectedFile(idx) {
+  selectedFiles.splice(idx, 1);
+  renderSelectedFiles();
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+// 提交上传
+function submitUpload() {
+  const name = document.getElementById('uploadSkillName').value.trim();
+  const desc = document.getElementById('uploadSkillDesc').value.trim();
+  const workId = document.getElementById('uploadWorkSelect').value;
+
+  if (selectedFiles.length === 0) {
+    showToast('请至少选择一个文件', 'error');
+    return;
+  }
+
+  if (!name) {
+    showToast('请输入 Skill 名称', 'error');
+    return;
+  }
+
+  const skill = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+    name,
+    description: desc,
+    workId: workId || '',
+    files: selectedFiles.map(f => ({ name: f.name, size: f.size, data: f.data })),
+    createdAt: new Date().toISOString()
+  };
+
+  uploadedSkills.push(skill);
+  saveSkills();
+  updateStats();
+  renderWorks(currentPhase);
+  renderPhaseOverview();
+
+  closeGlobalUploadModal();
+  showToast(`"${name}" 上传成功！${workId ? '已关联到工作项' : '作为独立 Skill 保存'}`, 'success');
+}
+
+// 删除 Skill
+function deleteSkill(idx) {
+  const skill = uploadedSkills[idx];
+  if (!confirm(`确认删除 Skill "${skill.name}"？`)) return;
+  uploadedSkills.splice(idx, 1);
+  saveSkills();
+  updateStats();
+  renderWorks(currentPhase);
+  renderPhaseOverview();
+  showToast('已删除', 'success');
+}
+
+// ============================================================
+// Toast 通知
+// ============================================================
+function showToast(text, type = 'success') {
+  const toast = document.getElementById('toast');
+  const icon = document.getElementById('toastIcon');
+  const txt = document.getElementById('toastText');
+
+  txt.textContent = text;
+  if (type === 'success') {
+    icon.innerHTML = '<svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
+  } else {
+    icon.innerHTML = '<svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>';
+  }
+
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3500);
+}
+
+// ============================================================
+// 粒子背景
+// ============================================================
+function initParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.animationDuration = (8 + Math.random() * 20) + 's';
+    particle.style.animationDelay = Math.random() * 10 + 's';
+    particle.style.opacity = 0.2 + Math.random() * 0.4;
+    particle.style.width = (1 + Math.random() * 2) + 'px';
+    particle.style.height = particle.style.width;
+    container.appendChild(particle);
+  }
+}
+
+// ESC 关闭 modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeDetailModal();
+    closeGlobalUploadModal();
+  }
+});
+
+// ============================================================
+// Skill 文件下载功能
+// ============================================================
+function downloadSkillFiles(skillId) {
+  const skill = uploadedSkills.find(s => s.id === skillId);
+  if (!skill || skill.files.length === 0) {
+    showToast('该 Skill 没有可下载的文件', 'error');
+    return;
+  }
+
+  if (skill.files.length === 1) {
+    // 单文件直接下载
+    downloadSingleFile(skill.files[0]);
+  } else {
+    // 多文件逐个下载（间隔触发）
+    skill.files.forEach((f, i) => {
+      setTimeout(() => downloadSingleFile(f), i * 300);
+    });
+  showToast(`正在下载 ${skill.files.length} 个文件...`, 'success');
+  }
+}
+
+function downloadSingleFile(fileObj) {
+  const a = document.createElement('a');
+  a.href = fileObj.data;
+  a.download = fileObj.name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ============================================================
+// 模拟数据 —— Skill 调用量排行榜
+// ============================================================
+const MOCK_CALL_RANKING = [
+  { name: '竞对数据获取 Skill', workId: 'm2_1', calls: 12847, trend: '+12.3%', color: '#f59e0b' },
+  { name: '拓客建联触达 Skill', workId: 't1_2', calls: 9832, trend: '+8.7%', color: '#10b981' },
+  { name: '行业基本面分析 Skill', workId: 'm1_1', calls: 7561, trend: '+5.2%', color: '#6366f1' },
+  { name: '流量效果监控 Skill', workId: 'e2_1', calls: 5429, trend: '+15.8%', color: '#ec4899' },
+  { name: '开发者答疑 Skill', workId: 's1_1', calls: 4215, trend: '+3.1%', color: '#14b8a6' },
+];
+
+// ============================================================
+// 模拟数据 —— 贡献者排行榜
+// ============================================================
+const MOCK_CONTRIBUTORS = [
+  { name: '张明远', avatar: 'ZM', avatarBg: 'linear-gradient(135deg,#6366f1,#8b5cf6)', skills: 12, contributions: 34, color: '#6366f1' },
+  { name: '李思琪', avatar: 'LS', avatarBg: 'linear-gradient(135deg,#10b981,#34d399)', skills: 9, contributions: 28, color: '#10b981' },
+  { name: '王浩然', avatar: 'WH', avatarBg: 'linear-gradient(135deg,#f59e0b,#fbbf24)', skills: 7, contributions: 21, color: '#f59e0b' },
+  { name: '陈雨萱', avatar: 'CY', avatarBg: 'linear-gradient(135deg,#ec4899,#f472b6)', skills: 6, contributions: 18, color: '#ec4899' },
+  { name: '刘子墨', avatar: 'LZ', avatarBg: 'linear-gradient(135deg,#14b8a6,#2dd4bf)', skills: 5, contributions: 14, color: '#14b8a6' },
+];
+
+const maxCalls = Math.max(...MOCK_CALL_RANKING.map(r => r.calls));
+const maxContributions = Math.max(...MOCK_CONTRIBUTORS.map(c => c.contributions));
+
+// ============================================================
+// 渲染调用量排行榜
+// ============================================================
+function renderCallRanking() {
+  const container = document.getElementById('callRankingList');
+  container.innerHTML = MOCK_CALL_RANKING.map((item, idx) => {
+    const pct = (item.calls / maxCalls * 100).toFixed(0);
+    const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-n';
+    return `
+    <div class="flex items-center gap-2.5 group">
+      <div class="rank-badge ${rankClass}">${idx + 1}</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs text-slate-200 font-medium truncate group-hover:text-white transition-colors cursor-default" title="${item.name}">${item.name}</div>
+        <div class="rank-bar mt-1"><div class="rank-bar-fill" style="width:${pct}%;background:${item.color}"></div></div>
+      </div>
+      <div class="text-right shrink-0">
+        <div class="text-xs font-bold text-white">${item.calls.toLocaleString()}</div>
+        <div class="text-[10px] font-medium" style="color:${item.color}">${item.trend}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// 渲染贡献者排行榜
+// ============================================================
+function renderContributorRanking() {
+  const container = document.getElementById('contributorRankingList');
+  container.innerHTML = MOCK_CONTRIBUTORS.map((c, idx) => {
+    const pct = (c.contributions / maxContributions * 100).toFixed(0);
+    const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-n';
+    return `
+    <div class="flex items-center gap-2.5 group">
+      <div class="rank-badge ${rankClass}">${idx + 1}</div>
+      <div class="contributor-avatar" style="background:${c.avatarBg}">${c.avatar}</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs text-slate-200 font-medium truncate">${c.name}</div>
+        <div class="rank-bar mt-1"><div class="rank-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+      </div>
+      <div class="text-right shrink-0">
+        <div class="text-xs font-bold text-white">${c.skills} Skill</div>
+        <div class="text-[10px] text-slate-500">${c.contributions} 贡献</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+</script>
+
+</body>
+</html>
