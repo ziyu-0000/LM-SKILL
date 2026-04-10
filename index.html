@@ -528,9 +528,9 @@
 </div>
 
 <!-- ===== 全局上传 Modal ===== -->
-<div id="globalUploadModal" class="fixed inset-0 z-50 hidden">
+<div id="globalUploadModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
   <div class="modal-overlay absolute inset-0" onclick="closeGlobalUploadModal()"></div>
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg glass rounded-2xl overflow-hidden animate-in">
+  <div class="relative w-full max-w-lg glass rounded-2xl overflow-hidden animate-in mx-4 my-8">
     <div class="p-6 border-b border-white/5">
       <h2 class="text-lg font-bold text-white flex items-center gap-2">
         <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -552,6 +552,13 @@
       <div>
         <label class="block text-sm font-medium text-slate-300 mb-2">Skill 名称</label>
         <input type="text" id="uploadSkillName" placeholder="例如：竞品数据自动获取脚本" 
+          class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 outline-none">
+      </div>
+
+      <!-- 上传者 -->
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">上传者</label>
+        <input type="text" id="uploadUploader" placeholder="例如：york、ken、ziyu..." 
           class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500/50 outline-none">
       </div>
 
@@ -1407,6 +1414,7 @@ function submitUpload() {
   const name = document.getElementById('uploadSkillName').value.trim();
   const desc = document.getElementById('uploadSkillDesc').value.trim();
   const workId = document.getElementById('uploadWorkSelect').value;
+  const uploader = document.getElementById('uploadUploader').value.trim();
 
   if (selectedFiles.length === 0) {
     showToast('请至少选择一个文件', 'error');
@@ -1423,6 +1431,7 @@ function submitUpload() {
     name,
     description: desc,
     workId: workId || '',
+    uploader: uploader || '匿名',
     files: selectedFiles.map(f => ({ name: f.name, size: f.size, data: f.data })),
     createdAt: new Date().toISOString()
   };
@@ -1540,11 +1549,11 @@ const MOCK_CALL_RANKING = [
 // 模拟数据 —— 贡献者排行榜
 // ============================================================
 const MOCK_CONTRIBUTORS = [
-  { name: '张明远', avatar: 'ZM', avatarBg: 'linear-gradient(135deg,#6366f1,#8b5cf6)', skills: 12, contributions: 34, color: '#6366f1' },
-  { name: '李思琪', avatar: 'LS', avatarBg: 'linear-gradient(135deg,#10b981,#34d399)', skills: 9, contributions: 28, color: '#10b981' },
-  { name: '王浩然', avatar: 'WH', avatarBg: 'linear-gradient(135deg,#f59e0b,#fbbf24)', skills: 7, contributions: 21, color: '#f59e0b' },
-  { name: '陈雨萱', avatar: 'CY', avatarBg: 'linear-gradient(135deg,#ec4899,#f472b6)', skills: 6, contributions: 18, color: '#ec4899' },
-  { name: '刘子墨', avatar: 'LZ', avatarBg: 'linear-gradient(135deg,#14b8a6,#2dd4bf)', skills: 5, contributions: 14, color: '#14b8a6' },
+  { name: 'york', avatar: 'YK', avatarBg: 'linear-gradient(135deg,#6366f1,#8b5cf6)', skills: 12, contributions: 34, color: '#6366f1' },
+  { name: 'ken', avatar: 'KN', avatarBg: 'linear-gradient(135deg,#10b981,#34d399)', skills: 9, contributions: 28, color: '#10b981' },
+  { name: 'ziyu', avatar: 'ZY', avatarBg: 'linear-gradient(135deg,#f59e0b,#fbbf24)', skills: 7, contributions: 21, color: '#f59e0b' },
+  { name: 'xiaolan', avatar: 'XL', avatarBg: 'linear-gradient(135deg,#ec4899,#f472b6)', skills: 6, contributions: 18, color: '#ec4899' },
+  { name: 'ymzhao', avatar: 'YM', avatarBg: 'linear-gradient(135deg,#14b8a6,#2dd4bf)', skills: 5, contributions: 14, color: '#14b8a6' },
 ];
 
 const maxCalls = Math.max(...MOCK_CALL_RANKING.map(r => r.calls));
